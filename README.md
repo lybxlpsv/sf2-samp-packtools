@@ -5,7 +5,7 @@ gets soundfont smpl data in and out
 
 put wave smpl to a new soundfont
 
-./sf2misctool s input_soundfont new_wave_smpl output_soundfont
+./sf2misctool d input_soundfont new_wave_smpl output_soundfont
 
 Example : 
 ./sf2misctool d file.sf2pack file.wav file.sf2
@@ -19,7 +19,7 @@ Example :
 
 put any smpl to a new soundfont
 
-./sf2misctool s input_soundfont new_smpl output_soundfont
+./sf2misctool e input_soundfont new_smpl output_soundfont
 
 Example :
 ./sf2misctool e file.sf2 file.ogg file.sf2pack
