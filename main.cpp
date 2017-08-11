@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 using namespace std;
-int bsearch(char* filename,char* search_term)
+int bsearch(char* filename,char* search_term, bool workaround)
 {
     int itfound;
     size_t search_term_size = strlen(search_term);
@@ -24,7 +24,7 @@ int bsearch(char* filename,char* search_term)
 
         while (file.read(buffer, sizeof buffer), chars_read = file.gcount())
             file_content.append(buffer, chars_read);
-
+        bool found = false;
         if (file.eof())
         {
             for (std::string::size_type offset = 0, found_at;
@@ -34,7 +34,12 @@ int bsearch(char* filename,char* search_term)
                  offset = found_at + search_term_size)
                  {
                    //std::cout << found_at << std::endl;
+                   if (workaround == true){
+                   if (found == false){
                    itfound = found_at;
+                   found = true;
+                   }
+                   } else itfound = found_at;
                  }
 
         }
@@ -129,14 +134,26 @@ int joinsamp(int a, int b, char* filename, char* fileogg, char* sfogg)
         FILE* wavefile = fopen ( fileogg , "rb" );
         long lSize;
         char * buffer;
+        char * buffer5;
         size_t result;
         fseek (wavefile , 0 , SEEK_END);
         lSize = ftell (wavefile);
         rewind (wavefile);
         fseek(wavefile,0,SEEK_SET);
-        buffer = (char*) malloc (sizeof(char)*lSize);
+        long remsize = lSize;
 
+        buffer5 = (char*) malloc (sizeof(char)*16384);
+
+        while (remsize - 16384 > 16384)
+        {
+            result = fread (buffer5,1,16384,wavefile);
+            fwrite(buffer5,1,16384,pFile);
+            remsize = remsize - 16384;
+        }
+
+        buffer = (char*) malloc (sizeof(char)*remsize);
         result = fread (buffer,1,lSize,wavefile);
+
         std::cout << result << std::endl;
         fwrite(buffer,1,lSize,pFile);
 
@@ -150,40 +167,41 @@ int joinsamp(int a, int b, char* filename, char* fileogg, char* sfogg)
 
 int main(int argc, char *argv[])
 {
+    printf("lyb's sf2 misc tools\n");
+    if (argv[1] == NULL){
+        printf("USAGE :\nsf2misctool d input_soundfont new_wave_smpl output_soundfont\nsf2misctool s input_soundfont output_smpl\nsf2misctool e input_soundfont new_smpl output_soundfont");
+        getchar();
+        return 0;
+    }
+
     if(argv[1] == std::string("d")) {
     printf("DECODE");
     const char* filename = argv[2];
-    const char* search_term = "smpl";
-    const char* search_term2 = "LIST";
 
-    int a = bsearch(argv[2],"smpl") + 4;
-    int b = bsearch(argv[2],"LIST");
+    int a = bsearch(argv[2],"smpl", true) + 4;
+    int b = bsearch(argv[2],"LIST", false);
     bconv(argv[2],argv[3],argv[4],a,b);
     }
 
     if(argv[1] == std::string("s")) {
     printf("SPLITSAMP");
     const char* filename = argv[2];
-    const char* search_term = "smpl";
-    const char* search_term2 = "LIST";
 
-    int a = bsearch(argv[2],"smpl") + 4;
-    int b = bsearch(argv[2],"LIST");
+    int a = bsearch(argv[2],"smpl", true) + 4;
+    int b = bsearch(argv[2],"LIST", false);
     splitsamp(a,b,argv[2],argv[3]);
+
     }
 
     if(argv[1] == std::string("e")) {
     printf("JOIN");
     const char* filename = argv[2];
-    const char* search_term = "smpl";
-    const char* search_term2 = "LIST";
 
-    int a = bsearch(argv[2],"smpl") + 4;
-    int b = bsearch(argv[2],"LIST");
+    int a = bsearch(argv[2],"smpl", true) + 4;
+    int b = bsearch(argv[2],"LIST", false);
     joinsamp(a,b,argv[2],argv[3],argv[4]);
+
     }
 
     return 0;
 }
-
-
